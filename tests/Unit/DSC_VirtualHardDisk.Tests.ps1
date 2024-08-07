@@ -43,48 +43,48 @@ try
         $script:DiskImageSize65Gb = 65Gb
         $script:MockTestPathCount = 0
 
-        $script:mockedDiskImageAttachedVhdx = [pscustomobject] @{
-            Attached              = $true
-            ImagePath             = $script:DiskImageGoodVhdxPath
-            Size                  = 100GB
-            DiskNumber            = 2
+        $script:mockedDiskImageMountedVhdx = [pscustomobject] @{
+            Mounted    = $true
+            ImagePath  = $script:DiskImageGoodVhdxPath
+            Size       = 100GB
+            DiskNumber = 2
         }
 
-        $script:mockedDiskImageAttachedVhd = [pscustomobject] @{
-            Attached              = $true
-            ImagePath             = $script:DiskImageGoodVhdPath
-            Size                  = 100GB
-            DiskNumber            = 2
+        $script:mockedDiskImageMountedVhd = [pscustomobject] @{
+            Mounted    = $true
+            ImagePath  = $script:DiskImageGoodVhdPath
+            Size       = 100GB
+            DiskNumber = 2
         }
 
-        $script:mockedDiskImageNotAttachedVhdx = [pscustomobject] @{
-            Attached              = $false
-            ImagePath             = $script:DiskImageGoodVhdxPath
-            Size                  = 100GB
-            DiskNumber            = 2
+        $script:mockedDiskImageNotMountedVhdx = [pscustomobject] @{
+            Mounted    = $false
+            ImagePath  = $script:DiskImageGoodVhdxPath
+            Size       = 100GB
+            DiskNumber = 2
         }
 
-        $script:mockedDiskImageNotAttachedVhd = [pscustomobject] @{
-            Attached              = $false
-            ImagePath             = $script:DiskImageGoodVhdPath
-            Size                  = 100GB
-            DiskNumber            = 2
+        $script:mockedDiskImageNotMountedVhd = [pscustomobject] @{
+            Mounted    = $false
+            ImagePath  = $script:DiskImageGoodVhdPath
+            Size       = 100GB
+            DiskNumber = 2
         }
 
         $script:GetTargetOutputWhenBadPath = [pscustomobject] @{
-            FilePath    = $null
-            Attached    = $null
-            Size        = $null
-            DiskNumber  = $null
-            Ensure      = 'Absent'
+            FilePath   = $null
+            Mounted    = $null
+            Size       = $null
+            DiskNumber = $null
+            Ensure     = 'Absent'
         }
 
         $script:GetTargetOutputWhenPathGood = [pscustomobject] @{
-            FilePath     = $mockedDiskImageAttachedVhdx.ImagePath
-            Attached    = $mockedDiskImageAttachedVhdx.Attached
-            Size        = $mockedDiskImageAttachedVhdx.Size
-            DiskNumber  = $mockedDiskImageAttachedVhdx.DiskNumber
-            Ensure      = 'Present'
+            FilePath   = $mockedDiskImageMountedVhdx.ImagePath
+            Mounted    = $mockedDiskImageMountedVhdx.Mounted
+            Size       = $mockedDiskImageMountedVhdx.Size
+            DiskNumber = $mockedDiskImageMountedVhdx.DiskNumber
+            Ensure     = 'Present'
         }
 
         $script:mockedDiskImageEmpty = $null
@@ -136,7 +136,6 @@ try
 
         Describe 'DSC_VirtualHardDisk\Get-TargetResource' {
             Context 'When file path does not exist or was never mounted' {
-
                 Mock `
                     -CommandName Get-DiskImage `
                     -MockWith { $script:mockedDiskImageEmpty } `
@@ -152,8 +151,8 @@ try
                     $resource.FilePath | Should -Be $script:GetTargetOutputWhenBadPath.FilePath
                 }
 
-                It "Should return Attached $($script:GetTargetOutputWhenBadPath.Attached)" {
-                    $resource.Attached | Should -Be $script:GetTargetOutputWhenBadPath.Attached
+                It "Should return Mounted $($script:GetTargetOutputWhenBadPath.Mounted)" {
+                    $resource.Mounted | Should -Be $script:GetTargetOutputWhenBadPath.Mounted
                 }
 
                 It "Should return Size $($script:GetTargetOutputWhenBadPath.Size)" {
@@ -168,7 +167,7 @@ try
             Context 'When file path does exist and was mounted at one point' {
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageMountedVhdx } `
                     -Verifiable
 
                 $resource = Get-TargetResource -FilePath $script:DiskImageGoodVhdxPath -Verbose
@@ -181,8 +180,8 @@ try
                     $resource.FilePath | Should -Be $script:GetTargetOutputWhenPathGood.FilePath
                 }
 
-                It "Should return Attached $($script:GetTargetOutputWhenPathGood.Attached)" {
-                    $resource.Attached | Should -Be $script:GetTargetOutputWhenPathGood.Attached
+                It "Should return Mounted $($script:GetTargetOutputWhenPathGood.Mounted)" {
+                    $resource.Mounted | Should -Be $script:GetTargetOutputWhenPathGood.Mounted
                 }
 
                 It "Should return Size $($script:GetTargetOutputWhenPathGood.Size)" {
@@ -196,9 +195,7 @@ try
         }
 
         Describe 'DSC_VirtualHardDisk\Set-TargetResource' {
-
             Context 'When file path is not fully qualified' {
-
                 $errorRecord = Get-InvalidArgumentRecord `
                     -Message ($script:localizedData.VirtualHardDiskPathError -f `
                         $DiskImageBadPath) `
@@ -257,7 +254,7 @@ try
             Context 'When file extension is not present in the file path' {
                 $errorRecord = Get-InvalidArgumentRecord `
                     -Message ($script:localizedData.VirtualHardDiskNoExtensionError -f `
-                    $script:DiskImageVirtDiskPathWithoutExtension) `
+                        $script:DiskImageVirtDiskPathWithoutExtension) `
                     -ArgumentName 'FilePath'
 
                 It 'Should throw invalid argument error when the file type and filepath extension do not match' {
@@ -273,8 +270,7 @@ try
             }
 
             Context 'When size provided is less than the minimum size for the vhd format' {
-
-                $minSizeInMbString = ($DiskImageSizeBelowVirtDiskMinimum / 1MB).ToString("0.00MB")
+                $minSizeInMbString = ($DiskImageSizeBelowVirtDiskMinimum / 1MB).ToString('0.00MB')
                 $errorRecord = Get-InvalidArgumentRecord `
                     -Message ($script:localizedData.VhdFormatDiskSizeInvalid -f `
                         $minSizeInMbString) `
@@ -293,7 +289,7 @@ try
             }
 
             Context 'When size provided is less than the minimum size for the vhdx format' {
-                $minSizeInMbString = ($DiskImageSizeBelowVirtDiskMinimum / 1MB).ToString("0.00MB")
+                $minSizeInMbString = ($DiskImageSizeBelowVirtDiskMinimum / 1MB).ToString('0.00MB')
                 $errorRecord = Get-InvalidArgumentRecord `
                     -Message ($script:localizedData.VhdxFormatDiskSizeInvalid -f `
                         $minSizeInMbString) `
@@ -312,7 +308,7 @@ try
             }
 
             Context 'When size provided is greater than the maximum size for the vhd format' {
-                $maxSizeInTbString = ($DiskImageSizeAboveVhdMaximum / 1TB).ToString("0.00TB")
+                $maxSizeInTbString = ($DiskImageSizeAboveVhdMaximum / 1TB).ToString('0.00TB')
                 $errorRecord = Get-InvalidArgumentRecord `
                     -Message ($script:localizedData.VhdFormatDiskSizeInvalid -f `
                         $maxSizeInTbString) `
@@ -331,7 +327,7 @@ try
             }
 
             Context 'When size provided is greater than the maximum size for the vhdx format' {
-                $maxSizeInTbString = ($DiskImageSizeAboveVhdxMaximum / 1TB).ToString("0.00TB")
+                $maxSizeInTbString = ($DiskImageSizeAboveVhdxMaximum / 1TB).ToString('0.00TB')
                 $errorRecord = Get-InvalidArgumentRecord `
                     -Message ($script:localizedData.VhdxFormatDiskSizeInvalid -f `
                         $maxSizeInTbString) `
@@ -376,18 +372,17 @@ try
             }
 
             Context 'Virtual disk is mounted and ensure set to present' {
-
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageMountedVhdx } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should not throw an exception' {
                     {
                         Set-TargetResource `
-                            -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                            -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                            -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                            -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                             -DiskFormat $extension `
                             -Ensure 'Present' `
                             -Verbose
@@ -401,22 +396,21 @@ try
             }
 
             Context 'Virtual disk is mounted and ensure set to absent, so it should be dismounted' {
-
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageMountedVhdx } `
                     -Verifiable
 
                 Mock `
                     -CommandName Dismount-DiskImage `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should dismount the virtual disk' {
                     {
                         Set-TargetResource `
-                            -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                            -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                            -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                            -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                             -DiskFormat $extension `
                             -Ensure 'Absent' `
                             -Verbose
@@ -433,19 +427,19 @@ try
             Context 'Virtual disk is dismounted and ensure set to present, so it should be re-mounted' {
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageNotAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageNotMountedVhdx } `
                     -Verifiable
 
                 Mock `
                     -CommandName Add-SimpleVirtualDisk `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should Not throw exception' {
                     {
                         Set-TargetResource `
-                            -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                            -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                            -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                            -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                             -DiskFormat $extension `
                             -Ensure 'Present' `
                             -Verbose
@@ -459,7 +453,7 @@ try
                 }
             }
 
-            Context 'Virtual disk does not exist and ensure set to present, so a new one should be created.' {
+            Context 'Virtual disk does not exist and ensure set to present, so a new one should be created and mounted' {
                 Mock `
                     -CommandName Get-DiskImage `
                     -MockWith { $script:mockedDiskImageEmpty } `
@@ -469,12 +463,12 @@ try
                     -CommandName New-SimpleVirtualDisk `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should not throw an exception' {
                     {
                         Set-TargetResource `
-                            -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                            -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                            -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                            -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                             -DiskFormat $extension `
                             -Ensure 'Present' `
                             -Verbose
@@ -489,7 +483,6 @@ try
             }
 
             Context 'When folder does not exist in user provided path but an exception occurs after creating the virtual disk' {
-
                 Mock `
                     -CommandName Get-DiskImage `
                     -MockWith { $script:mockedDiskImageEmpty } `
@@ -523,13 +516,13 @@ try
                     -Verifiable
 
                 $script:MockTestPathCount = 0
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 $exception = [System.ComponentModel.Win32Exception]::new($script:AccessDeniedWin32Error)
                 It 'Should not let exception escape and new folder and file should be deleted' {
                     {
                         Set-TargetResource `
-                            -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                            -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                            -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                            -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                             -DiskFormat $extension `
                             -Ensure 'Present' `
                             -Verbose
@@ -553,14 +546,14 @@ try
                     -MockWith { $script:mockedDiskImageEmpty } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should return false.' {
                     Test-TargetResource `
-                        -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                        -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                        -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                        -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                         -DiskFormat $extension `
                         -Ensure 'Present' `
-                        -Verbose | Should -Be $false
+                        -Verbose | Should -BeFalse
                 }
 
                 It 'Should only call required mocks' {
@@ -572,17 +565,17 @@ try
             Context 'Virtual disk exists but is not mounted while ensure set to present' {
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageNotAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageNotMountedVhdx } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should return false.' {
                     Test-TargetResource `
-                        -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                        -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                        -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                        -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                         -DiskFormat $extension `
                         -Ensure 'Present' `
-                        -Verbose | Should -Be $false
+                        -Verbose | Should -BeFalse
                 }
 
                 It 'Should only call required mocks' {
@@ -597,14 +590,14 @@ try
                     -MockWith { $script:mockedDiskImageEmpty } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should return true' {
                     Test-TargetResource `
-                        -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                        -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                        -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                        -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                         -DiskFormat $extension `
                         -Ensure 'Absent' `
-                        -Verbose | Should -Be $true
+                        -Verbose | Should -BeTrue
                 }
 
                 It 'Should only call required mocks' {
@@ -616,17 +609,17 @@ try
             Context 'Virtual disk exists, is mounted and ensure set to present' {
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageMountedVhdx } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should return true' {
                     Test-TargetResource `
-                        -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                        -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                        -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                        -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                         -DiskFormat $extension `
                         -Ensure 'Present' `
-                        -Verbose | Should -Be $true
+                        -Verbose | Should -BeTrue
                 }
 
                 It 'Should only call required mocks' {
@@ -638,17 +631,17 @@ try
             Context 'Virtual disk exists but is mounted while ensure set to absent' {
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageMountedVhdx } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should return false.' {
                     Test-TargetResource `
-                        -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                        -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                        -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                        -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                         -DiskFormat $extension `
                         -Ensure 'absent' `
-                        -Verbose | Should -Be $false
+                        -Verbose | Should -BeFalse
                 }
 
                 It 'Should only call required mocks' {
@@ -660,17 +653,17 @@ try
             Context 'Virtual disk exists but is not mounted while ensure set to absent' {
                 Mock `
                     -CommandName Get-DiskImage `
-                    -MockWith { $script:mockedDiskImageNotAttachedVhdx } `
+                    -MockWith { $script:mockedDiskImageNotMountedVhdx } `
                     -Verifiable
 
-                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageAttachedVhdx.ImagePath).TrimStart('.')
+                $extension = [System.IO.Path]::GetExtension($script:mockedDiskImageMountedVhdx.ImagePath).TrimStart('.')
                 It 'Should return true.' {
                     Test-TargetResource `
-                        -FilePath $script:mockedDiskImageAttachedVhdx.ImagePath `
-                        -DiskSize $script:mockedDiskImageAttachedVhdx.Size `
+                        -FilePath $script:mockedDiskImageMountedVhdx.ImagePath `
+                        -DiskSize $script:mockedDiskImageMountedVhdx.Size `
                         -DiskFormat $extension `
                         -Ensure 'absent' `
-                        -Verbose | Should -Be $true
+                        -Verbose | Should -BeTrue
                 }
 
                 It 'Should only call required mocks' {
