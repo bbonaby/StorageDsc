@@ -160,7 +160,7 @@ function Get-DiskByIdentifier
         $DiskId,
 
         [Parameter()]
-        [ValidateSet('Number','UniqueId','Guid','Location','FriendlyName','SerialNumber')]
+        [ValidateSet('Number', 'UniqueId', 'Guid', 'Location', 'FriendlyName', 'SerialNumber')]
         [System.String]
         $DiskIdType = 'Number'
     )
@@ -182,7 +182,7 @@ function Get-DiskByIdentifier
         default # for filters requiring Where-Object
         {
             $disk = Get-Disk -ErrorAction SilentlyContinue |
-                    Where-Object -Property $DiskIdType -EQ $DiskId
+                Where-Object -Property $DiskIdType -EQ $DiskId
         }
     }
 
@@ -233,7 +233,7 @@ function Get-DevDriveWin32HelperScript
     param
     ()
 
-    $DevDriveHelperDefinitions =  @'
+    $DevDriveHelperDefinitions = @'
 
         // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/ne-sysinfoapi-developer_drive_enablement_state
         public enum DEVELOPER_DRIVE_ENABLEMENT_STATE
@@ -385,8 +385,8 @@ function Get-DevDriveWin32HelperScript
             -Name 'DevDriveHelper' `
             -MemberDefinition $DevDriveHelperDefinitions `
             -UsingNamespace `
-                'System.ComponentModel',
-                'Microsoft.Win32.SafeHandles'
+            'System.ComponentModel',
+        'Microsoft.Win32.SafeHandles'
     }
 
     return $script:DevDriveWin32Helper
@@ -628,6 +628,26 @@ function Compare-SizeUsingGB
 
 }# end function Compare-SizeUsingGB
 
+<#
+    .SYNOPSIS
+        Gets a value indicating whether the script is running as Administrator or not.
+
+    .PARAMETER SizeAInBytes
+        The size of the first value in bytes.
+
+    .PARAMETER SizeBInBytes
+        The size of the second value in bytes.
+#>
+function Test-IsRunningAsAdministrator
+{
+    [CmdletBinding()]
+    [OutputType([System.Boolean])]
+    param
+    ()
+
+    return (Security.Principal.WindowsPrincipal).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+} # end function Test-IsRunningAsAdministrator
+
 Export-ModuleMember -Function @(
     'Restart-ServiceIfExists',
     'Assert-DriveLetterValid',
@@ -642,5 +662,6 @@ Export-ModuleMember -Function @(
     'Get-DevDriveEnablementState',
     'Test-DevDriveVolume',
     'Invoke-DeviceIoControlWrapperForDevDriveQuery',
-    'Compare-SizeUsingGB'
+    'Compare-SizeUsingGB',
+    'Test-IsRunningAsAdministrator'
 )

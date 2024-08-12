@@ -107,6 +107,8 @@ function Set-TargetResource
         $Ensure = 'Present'
     )
 
+
+
     Assert-ParametersValid -FilePath $FilePath -DiskSize $DiskSize -DiskFormat $DiskFormat
 
     $currentState = Get-TargetResource -FilePath $FilePath

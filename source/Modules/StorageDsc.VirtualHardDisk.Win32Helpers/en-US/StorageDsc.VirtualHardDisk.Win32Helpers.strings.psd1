@@ -8,4 +8,5 @@ ConvertFrom-StringData @'
     OpeningVirtualBeforeMountingMessage = Attempting to open handle to virtual hard disk at location '{0}.
     OpenVirtualDiskError = Unable to open virtual hard disk handle for location '{0}' due to error '{1}'.
     VirtualDiskOpenedSuccessfully = Virtual hard disk handle for location '{0}' opened successfully.
+    VirtualDiskAdminError = Creating and mounting a virtual disk requires running PowerShell as an Administrator. Please launch PowerShell as Administrator and try again.
 '@
